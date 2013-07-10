@@ -11,6 +11,7 @@ public class Warehouse {
 		String name;
 		int stock;
 		String OrderID;
+		int quantity;
 		private static Session session;
 		public static String url = "tcp://localhost:61616";
 		public static String user =ActiveMQConnection.DEFAULT_USER;
@@ -31,13 +32,15 @@ public class Warehouse {
 			
 		}
 
-		public void recieveOrder() { 
+		public void recieveAdvisoryOrder() { 
 			try {
 			 warehouseConsumer = new TopicConsumer();
 			 warehouseConsumer.GetConnection(user,password,url);
 			 warehouseConsumer.start();
 			Message msg= warehouseConsumer.getMsg();
-			this.OrderID= msg.getStringProperty(OrderID);
+			this.quantity=msg.getIntProperty("Quantity");
+			this.OrderID=msg.getStringProperty("OrderID");
+		 	new Warehouse().canTakeOrder(quantity, OrderID);
 			}
 			
 			catch (JMSException er)
@@ -55,8 +58,8 @@ public class Warehouse {
 				Message Accepted = session.createMessage();
 		   	 	Accepted.setStringProperty("Order ID", OrderID);
 		   	 	Accepted.setStringProperty("Intent","Warehouse will complete Order");
-		   	 	warehouseProducer.sendMessage(Accepted);
-					
+		   
+		   	 		
 			}
 			catch (JMSException re) 
 			{
@@ -69,7 +72,9 @@ public class Warehouse {
 			 	if ( quantity <= this.stock) 
 				{
 				this.stock = stock-quantity;
+				new Warehouse().expressIntent(OrderID);
 				new Warehouse().orderAcceptable(OrderID);
+				
 				}
 			else 
 		{
@@ -100,7 +105,7 @@ public class Warehouse {
 				warehouseProducer.GetConnection(user,password,url);
 				Message NotAccepted = session.createMessage();
 		   	 	NotAccepted.setStringProperty("Order ID", OrderID);
-		   	    NotAccepted.setStringProperty("Order Status", "Not Accepted");
+		   	    NotAccepted.setStringProperty("Order Status", "Not Accepted. Not Enough Supplies");
 		   	    warehouseProducer.sendMessage(NotAccepted);
 			}
 			catch (JMSException re) 
@@ -109,9 +114,7 @@ public class Warehouse {
 		
 		}
 		
-		public static void main(String[] args) {
-			
-			
+	
 		
-		}
+		
 }
