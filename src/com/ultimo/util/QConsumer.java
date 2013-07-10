@@ -13,7 +13,7 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 public class QConsumer  extends Thread implements Consumer{
 	Connection connection = null;
 	private boolean Status = true;
-	
+	Message Msg;
 	public void GetConnection(String user, String password, String url) {
 		try
 		{
@@ -35,7 +35,7 @@ public class QConsumer  extends Thread implements Consumer{
 	        MessageConsumer consumer = session.createConsumer(destination);
 	        while(Status)
             {
-	        	Message Msg = consumer.receive(1000);
+	        	Msg = consumer.receive(1000);
             }
 	        consumer.close();
 	    	session.close();
@@ -50,5 +50,8 @@ public class QConsumer  extends Thread implements Consumer{
 	{
 		Status = St;
 	}
-
+	public Message getMsg()
+	{
+	  return this.Msg;
+	}
 }
