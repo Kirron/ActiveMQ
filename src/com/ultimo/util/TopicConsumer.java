@@ -36,7 +36,7 @@ public class TopicConsumer extends Thread implements Consumer{
         	Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
             Destination destination = session.createTopic(subject);
             MessageConsumer consumer = session.createConsumer(destination);
-           String str="subject";
+           //String str = "subject";
            
             while(Status)
             {
