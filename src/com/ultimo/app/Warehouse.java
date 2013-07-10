@@ -40,21 +40,28 @@ public class Warehouse {
 		}
 
 		public void recieveOrder() { 
-			
+			try {
 			 warehouseConsumer = new TopicConsumer();
 			 warehouseConsumer.GetConnection(user,password,url);
 			 warehouseConsumer.start();
+			Message msg= warehouseConsumer.getMsg();
+			this.OrderID= msg.getStringProperty(OrderID);
+			}
+			
+			catch (JMSException er)
+			{
+			}
 			 
 			 	
 		}
 
-		public void expressIntent() {
+		public void expressIntent(String OrderID) {
 			try {
 		
 				warehouseProducer = new TopicProducer();
 				warehouseProducer.GetConnection(user,password,url);
 				Message Accepted = session.createMessage();
-		   	 	Accepted.setStringProperty("Order ID", OrderId);
+		   	 	Accepted.setStringProperty("Order ID", OrderID);
 		   	 	Accepted.setStringProperty("Intent","Warehouse will complete Order");
 		   	 	warehouseProducer.sendMessage(Accepted);
 					
@@ -64,26 +71,26 @@ public class Warehouse {
 			}
 		}
 
-		public void canTakeOrder(int quantity) {
+		public void canTakeOrder(int quantity,String OrderID) {
 			
 			 		
 			 	if ( quantity <= this.stock) 
 				{
 				this.stock = stock-quantity;
-				Warehouse.orderAcceptable();
+				new Warehouse().orderAcceptable(OrderID);
 				}
 			else 
 		{
-			Warehouse.orderUnacceptable();
+			new Warehouse().orderUnacceptable(OrderID);
 			}
 			}	
 		
-		public  void orderAcceptable () {
+		public  void orderAcceptable (String OrderID) {
 		try {
 			warehouseProducer = new TopicProducer();
 			warehouseProducer.GetConnection(user,password,url);
 			Message Accepted = session.createMessage();
-	   	 	Accepted.setStringProperty("Order ID", OrderId);
+	   	 	Accepted.setStringProperty("Order ID", OrderID);
 	   	    Accepted.setStringProperty("Order Status", "Accepted");
 	   	    warehouseProducer.sendMessage(Accepted);
 	
@@ -95,12 +102,12 @@ public class Warehouse {
 	}
 
 		
-		public void orderUnacceptable () {
+		public void orderUnacceptable (String OrderID) {
 			try {
 				warehouseProducer = new TopicProducer();
 				warehouseProducer.GetConnection(user,password,url);
 				Message NotAccepted = session.createMessage();
-		   	 	NotAccepted.setStringProperty("Order ID", OrderId);
+		   	 	NotAccepted.setStringProperty("Order ID", OrderID);
 		   	    NotAccepted.setStringProperty("Order Status", "Not Accepted");
 		   	    warehouseProducer.sendMessage(NotAccepted);
 			}
