@@ -1,3 +1,6 @@
+package com.ultimo.app;
+
+
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
