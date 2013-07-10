@@ -1,6 +1,5 @@
 package com.ultimo.app;
-
-
+import com.ultimo.util.*;
 import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
@@ -21,6 +20,12 @@ public class Warehouse {
 		int stock;
 		String OrderID;
 		private static Session session;
+		public static String url = "tcp://localhost:61616";
+		public static String user =ActiveMQConnection.DEFAULT_USER;
+		public static String password =  ActiveMQConnection.DEFAULT_PASSWORD;
+		
+		TopicProducer warehouseProducer;
+		TopicConsumer warehouseConsumer;
 
 		public Warehouse (String name, int stock) {
 
@@ -30,43 +35,29 @@ public class Warehouse {
 		}
 		public Warehouse () {
 			
+			
+			
 		}
 
-		public String recieveOrder() { 
-			try{
-			 	ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(ActiveMQConnection.DEFAULT_USER, ActiveMQConnection.DEFAULT_PASSWORD, ActiveMQConnection.DEFAULT_BROKER_URL);
-	            Connection connection = connectionFactory.createConnection();
-	            connection.start();
-	            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-	            Destination destination = session.createTopic("Warehouse Confirmation");
-	            MessageConsumer consumer = session.createConsumer(destination);
-	            Message recieved = consumer.receive();
-	            String OrderID = recieved.getStringProperty("Order ID").toString();
-	            return OrderID;
-	            new Warehouse.
-				}
+		public void recieveOrder() { 
 			
-			catch(JMSException ex)
-			{
-				return ex.toString();
-			}
+			 warehouseConsumer = new TopicConsumer();
+			 warehouseConsumer.GetConnection(user,password,url);
+			 warehouseConsumer.start();
+			 
+			 	
 		}
 
 		public void expressIntent() {
 			try {
-				ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(ActiveMQConnection.DEFAULT_USER, ActiveMQConnection.DEFAULT_PASSWORD, ActiveMQConnection.DEFAULT_BROKER_URL);
-				Connection connection = null;
-		        connection = connectionFactory.createConnection();
-		        connection.start();
-		        connectionFactory.setUseAsyncSend(false);
-		         session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		        Destination destination = session.createQueue("Intent Queue");
-		        MessageProducer producer = session.createProducer(destination);
-			    producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-		   	 	Message Accepted = session.createMessage();
+		
+				warehouseProducer = new TopicProducer();
+				warehouseProducer.GetConnection(user,password,url);
+				Message Accepted = session.createMessage();
 		   	 	Accepted.setStringProperty("Order ID", OrderId);
 		   	 	Accepted.setStringProperty("Intent","Warehouse will complete Order");
-	
+		   	 	warehouseProducer.sendMessage(Accepted);
+					
 			}
 			catch (JMSException re) 
 			{
@@ -88,20 +79,14 @@ public class Warehouse {
 			}	
 		
 		
-		public static void orderAcceptable () {
+		public  void orderAcceptable () {
 		try {
-			ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(ActiveMQConnection.DEFAULT_USER, ActiveMQConnection.DEFAULT_PASSWORD, ActiveMQConnection.DEFAULT_BROKER_URL);
-			Connection connection = null;
-	        connection = connectionFactory.createConnection();
-	        connection.start();
-	        connectionFactory.setUseAsyncSend(false);
-	         session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-	        Destination destination = session.createTopic("Warehouse Confirmation");
-	        MessageProducer producer = session.createProducer(destination);
-		    producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-	   	 	Message Accepted = session.createMessage();
+			warehouseProducer = new TopicProducer();
+			warehouseProducer.GetConnection(user,password,url);
+			Message Accepted = session.createMessage();
 	   	 	Accepted.setStringProperty("Order ID", OrderId);
 	   	    Accepted.setStringProperty("Order Status", "Accepted");
+	   	    warehouseProducer.sendMessage(Accepted);
 	
 		}
 		catch (JMSException re) 
@@ -111,67 +96,18 @@ public class Warehouse {
 	}
 
 		
-		public static void orderUnacceptable () {
+		public void orderUnacceptable () {
 			try {
-				ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(ActiveMQConnection.DEFAULT_USER, ActiveMQConnection.DEFAULT_PASSWORD, ActiveMQConnection.DEFAULT_BROKER_URL);
-				Connection connection = null;
-		        connection = connectionFactory.createConnection();
-		        connection.start();
-		        connectionFactory.setUseAsyncSend(false);
-		         session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		        Destination destination = session.createTopic("Warehouse Confirmation");
-		        MessageProducer producer = session.createProducer(destination);
-			    producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-		   	 	Message NotAccepted = session.createMessage();
+				warehouseProducer = new TopicProducer();
+				warehouseProducer.GetConnection(user,password,url);
+				Message NotAccepted = session.createMessage();
 		   	 	NotAccepted.setStringProperty("Order ID", OrderId);
 		   	    NotAccepted.setStringProperty("Order Status", "Not Accepted");
-		   	    producer.send(NotAccepted);
+		   	    warehouseProducer.sendMessage(NotAccepted);
 			}
 			catch (JMSException re) 
 			{
 			}
 		
 		}
-			
-		/* public static  void warehouseProducer () {
-			
-			try{	
-				ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(ActiveMQConnection.DEFAULT_USER, ActiveMQConnection.DEFAULT_PASSWORD, ActiveMQConnection.DEFAULT_BROKER_URL);
-				Connection connection = null;
-		        connection = connectionFactory.createConnection();
-		        connection.start();
-		        connectionFactory.setUseAsyncSend(false);
-		         session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		        Destination destination = session.createTopic("Warehouse Confirmation");
-		        MessageProducer producer = session.createProducer(destination);
-			    producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-			       
-			    
-
-			}
-			catch(JMSException ex)
-			{
-			}
-			
-		}
-		*/
-
-		/* public void warehouseConsumer () {
-
-			try{
-			 	ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(ActiveMQConnection.DEFAULT_USER, ActiveMQConnection.DEFAULT_PASSWORD, ActiveMQConnection.DEFAULT_BROKER_URL);
-	            Connection connection = connectionFactory.createConnection();
-	            connection.start();
-	             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-	            Destination destination = session.createTopic("Warehouse Confirmation");
-	            MessageConsumer consumer = session.createConsumer(destination);
-			}
-			
-			catch(JMSException ex)
-			{
-			}
-		}
-		
-		*/
-
 }
