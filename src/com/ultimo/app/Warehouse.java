@@ -77,7 +77,6 @@ public class Warehouse {
 			Warehouse.orderUnacceptable();
 			}
 			}	
-		ddd
 		
 		public  void orderAcceptable () {
 		try {
